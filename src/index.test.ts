@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import { Effect } from "effect"
 import { Ledger, Network } from "@helios-lang/effect/Cardano"
-import { Blockfrost } from "./index"
+import { Blockfrost } from "./index.js"
 
 describe("BlockfrostLive", () => {
     it("fetches UTxOs at a known preprod address", async () => {
