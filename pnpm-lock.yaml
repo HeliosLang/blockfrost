@@ -12,8 +12,8 @@ importers:
         specifier: 0.94.5
         version: 0.94.5(effect@3.21.0)
       '@helios-lang/effect':
-        specifier: ^0.4.40
-        version: 0.4.40
+        specifier: ^0.4.43
+        version: 0.4.43
       effect:
         specifier: 3.21.0
         version: 3.21.0
@@ -82,8 +82,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@helios-lang/effect@0.4.40':
-    resolution: {integrity: sha512-9gRNskVV4mRynGRJRvv3bR6oYq5vsxsYB9ATxsrdXhqJD3rTQATAv4IBhAGarMBsuX5jKYauAZeeBC3PHAzwcA==}
+  '@helios-lang/effect@0.4.43':
+    resolution: {integrity: sha512-qLSxsi4DqggLd0BOAPm2x2SCPkUuEhNiN+vZT7JTprhRzxh2zGloVeoYf4hc7fY1wn7+OpKpKWgHL3NDk48JmQ==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -636,7 +636,7 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@helios-lang/effect@0.4.40':
+  '@helios-lang/effect@0.4.43':
     dependencies:
       effect: 3.21.0
 

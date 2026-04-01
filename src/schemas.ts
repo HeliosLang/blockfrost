@@ -9,6 +9,36 @@ export class ResolveScriptError extends Data.TaggedError("Blockfrost.ResolveScri
 
 export class ResolveScript extends Context.Tag("Blockfrost.ResolveScript")<ResolveScript, (scriptHash: string) => Effect.Effect<Uplc.Script.Script<2 | 3>, ResolveScriptError>>() {}
 
+export const AddressTxsResponse = Schema.Array(Schema.transform(
+  Schema.Struct({
+    tx_hash: Ledger.TxHash.TxHash,
+    tx_index: Schema.Int,
+    block_height: Schema.Int,
+    block_time: Schema.Int
+  }),
+  Schema.typeSchema(Schema.Struct({
+    hash: Ledger.TxHash.TxHash,
+    indexInBlock: Schema.Int,
+    blockHeight: Schema.Int,
+    blockTime: Schema.Int
+  })),
+  {
+    strict: true,
+    decode: rawItem => ({
+      hash: rawItem.tx_hash,
+      indexInBlock: rawItem.tx_index,
+      blockHeight: rawItem.block_height,
+      blockTime: rawItem.block_time
+    }),
+    encode: item => ({
+      tx_hash: item.hash,
+      tx_index: item.indexInBlock,
+      block_height: item.blockHeight,
+      block_time: item.blockTime
+    })
+  }
+))
+
 export const AssetClass = Schema.transformOrFail(
   Schema.String,
   Ledger.AssetClass.AssetClass,
@@ -57,8 +87,8 @@ export const Assets = Schema.transformOrFail(
   }
 )
 
-export const RequestHeaders = Schema.Struct({
-  project_id: Schema.String
+export const CborResponse = Schema.Struct({
+  cbor: Schema.String
 })
 
 export const SubmitResponse = Schema.transformOrFail(
