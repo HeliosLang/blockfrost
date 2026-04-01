@@ -1,14 +1,18 @@
 {
-  "name": "@helios-lang/blockfrost",
+  "name": "@helios-lang/blockfrost-client",
   "version": "0.1.0",
   "description": "Effect-native blockfrost client",
   "license": "BSD-3-Clause",
   "packageManager": "pnpm@10.20.0",
   "type": "module",
   "scripts": {
+    "build": "tsc -p ./tsconfig.build.json",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "typecheck": "tsc -p tsconfig.json"
+    "prepack": "pnpm run build",
+    "test": "pnpm run lint && pnpm run test:types && pnpm run test:unit",
+    "test:types": "tsc -p tsconfig.json",
+    "test:unit": "bun test"
   },
   "dependencies": {
     "@effect/platform": "0.94.5",
