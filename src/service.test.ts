@@ -10,7 +10,7 @@ const projectId = "preprodYjh2RkMv6xqgWNKOBhuQ6hoazm0s0iFp"
 describe("BlockfrostLive", () => {
   it("getTx() returns same cbor as ledger serialization", async () => {
     const txId
-      = "2b5395c8417739ecf6a8ce447c28f4a027951673ca8fbf6b8b9d77d99715b4a6" as Ledger.TxHash.TxHash
+      = "51819b162fc12523e3e80240f86c52e3a0a3fcca686790f6d616e275617a18c4" as Ledger.TxHash.TxHash
 
     const tx = await Effect.runPromise(Network.Tx.pipe(
       Effect.flatMap(getTx => getTx(txId)),

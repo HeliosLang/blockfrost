@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@effect/platform": "0.94.5",
-    "@helios-lang/effect": "^0.4.43",
+    "@helios-lang/effect": "^0.4.45",
     "effect": "3.21.0"
   },
   "devDependencies": {
