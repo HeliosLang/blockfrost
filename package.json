@@ -5,6 +5,16 @@
   "license": "BSD-3-Clause",
   "packageManager": "pnpm@10.20.0",
   "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./types/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc -p ./tsconfig.build.json",
     "lint": "eslint",
