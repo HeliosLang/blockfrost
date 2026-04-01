@@ -115,7 +115,7 @@ export const TxOutput = Schema.transformOrFail(
     Schema.extend(Schema.typeSchema(Ledger.TxOutput.TxOutput), TxOutputMetadata),
     {
         strict: true,
-        decode: (raw, _, ast) =>
+        decode: (raw, _, _ast) =>
             Effect.gen(function* () {
                 const resolveScript = yield* ResolveScript
                 const datum = yield* Schema.decodeUnknown(TxOutputDatum)({
@@ -131,7 +131,7 @@ export const TxOutput = Schema.transformOrFail(
                             Effect.mapError(
                                 (error) =>
                                     new ParseResult.Type(
-                                        ast,
+                                        Schema.String.ast,
                                         raw.reference_script_hash,
                                         error.message
                                     )
@@ -234,7 +234,7 @@ export const UTxO = Schema.transformOrFail(
     Schema.typeSchema(Ledger.UTxO.UTxO),
     {
         strict: true,
-        decode: (raw, _, ast) =>
+        decode: (raw, _, _ast) =>
             Effect.gen(function* () {
                 const output = yield* Schema.decodeUnknown(TxOutput)({
                     address: raw.address,
