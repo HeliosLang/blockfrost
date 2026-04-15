@@ -1,6 +1,6 @@
 {
   "name": "@helios-lang/blockfrost-client",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Effect-native blockfrost client",
   "license": "BSD-3-Clause",
   "packageManager": "pnpm@10.20.0",
