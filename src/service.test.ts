@@ -8,6 +8,24 @@ const networkName = "preprod" as const
 const projectId = "preprodYjh2RkMv6xqgWNKOBhuQ6hoazm0s0iFp"
 
 describe("BlockfrostLive", () => {
+  it("provides Network.Params.params", async () => {
+    const params = await Effect.runPromise(Network.Params.params.pipe(
+      Effect.provide(
+        BlockfrostLayer({
+          networkName,
+          projectId
+        })
+      )
+    ))
+
+    expect(params.txFeeFixed).toBeGreaterThan(0)
+    expect(params.txFeePerByte).toBeGreaterThan(0)
+    expect(params.costModelParamsV1.length).toBeGreaterThan(0)
+    expect(params.costModelParamsV2.length).toBeGreaterThan(0)
+    expect(params.refTipSlot).toBeGreaterThan(0)
+    expect(params.refTipTime).toBeGreaterThan(0)
+  })
+
   it("getTx() returns same cbor as ledger serialization", async () => {
     const txId
       = "51819b162fc12523e3e80240f86c52e3a0a3fcca686790f6d616e275617a18c4" as Ledger.TxHash.TxHash

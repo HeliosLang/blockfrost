@@ -8,8 +8,11 @@ import {
 import { Ledger, Network, Uplc } from "@helios-lang/effect/Cardano"
 import { Bytes } from "@helios-lang/effect/Codecs"
 import { Effect, Either, Layer, Schema } from "effect"
+import type { BlockfrostCostModelParams } from "./schemas.js"
 import {
   AddressTxsResponse,
+  BlockfrostParamsResponse,
+  BlockfrostTipResponse,
   CborResponse,
   ResolveScript,
   ResolveScriptError,
@@ -34,6 +37,60 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
   const baseUrl = (config.baseUrl
     ?? `https://cardano-${config.networkName}.blockfrost.io/api/v0`
   ).replace(/\/+$/, "")
+
+  const getJson = (path: string) =>
+    executeWithRateLimitRetry(() =>
+      client.get(`${baseUrl}${path}`, {
+        headers: {
+          project_id: config.projectId
+        },
+        accept: "application/json"
+      })
+    ).pipe(
+      Effect.flatMap(response =>
+        Effect.gen(function* () {
+          if (response.status >= 400) {
+            return yield* Effect.fail(
+              new Network.ConnectionError(yield* response.text)
+            )
+          }
+
+          return yield* response.json
+        })
+      ),
+      Effect.catchTag(
+        "ResponseError",
+        e => new Network.ConnectionError(e.message)
+      )
+    )
+
+  const getParams = Effect.gen(function* () {
+    const [tip, params] = yield* Effect.all([
+      getJson("/blocks/latest").pipe(
+        Effect.flatMap(Schema.decodeUnknown(BlockfrostTipResponse)),
+        Effect.catchTag(
+          "ParseError",
+          e => new Network.UnexpectedFormat(e.message)
+        )
+      ),
+      getJson("/epochs/latest/parameters").pipe(
+        Effect.flatMap(Schema.decodeUnknown(BlockfrostParamsResponse)),
+        Effect.catchTag(
+          "ParseError",
+          e => new Network.UnexpectedFormat(e.message)
+        )
+      )
+    ])
+
+    return yield* Schema.decodeUnknown(Network.Params.Params)(
+      toNetworkParams(tip, params)
+    ).pipe(
+      Effect.catchTag(
+        "ParseError",
+        e => new Network.UnexpectedFormat(e.message)
+      )
+    )
+  })
 
   const resolveScript = (scriptHash: string) =>
     executeWithRateLimitRetry(() =>
@@ -174,6 +231,10 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
 
   return Layer.mergeAll(
     Layer.succeed(Network.IsMainnet, config.networkName === "mainnet"),
+    Layer.effect(
+      Network.Params.params,
+      getParams
+    ),
     Layer.effect(
       Network.UTxO,
       Effect.succeed(getUTxO)
@@ -478,6 +539,59 @@ export const BlockfrostLayer = (config: Config) =>
 
 export const provideBlockfrostService = (config: Config) =>
   Effect.provide(BlockfrostLayer(config))
+
+// The final shape is validated with Network.Params.Params after translating
+// Blockfrost field names.
+const toNetworkParams = (
+  tip: BlockfrostTipResponse,
+  params: BlockfrostParamsResponse
+) => ({
+  secondsPerSlot: 1,
+  collateralPercentage: params.collateral_percent,
+  costModelParamsV1: costModelParamsToArray(
+    params.cost_models.PlutusV1
+  ),
+  costModelParamsV2: costModelParamsToArray(
+    params.cost_models.PlutusV2
+  ),
+  costModelParamsV3: costModelParamsToArray(
+    params.cost_models.PlutusV3
+  ),
+  exCpuFeePerUnit: params.price_step,
+  exMemFeePerUnit: params.price_mem,
+  maxCollateralInputs: params.max_collateral_inputs,
+  maxTxExCpu: params.max_tx_ex_steps,
+  maxTxExMem: params.max_tx_ex_mem,
+  maxTxSize: params.max_tx_size,
+  refScriptsFeePerByte: params.min_fee_ref_script_cost_per_byte ?? 0,
+  stakeAddrDeposit: params.key_deposit,
+  txFeeFixed: params.min_fee_b,
+  txFeePerByte: params.min_fee_a,
+  utxoDepositPerByte:
+    params.coins_per_utxo_size ?? params.coins_per_utxo_word,
+  refTipSlot: tip.slot,
+  refTipTime: tip.time * 1000
+})
+
+const costModelParamsToArray = (
+  params: BlockfrostCostModelParams | undefined
+): number[] => {
+  if (params === undefined) {
+    return []
+  }
+
+  if (isCostModelParamsArray(params)) {
+    return [...params]
+  }
+
+  const keyedParams = params as Record<string, number>
+
+  return Object.keys(keyedParams).sort().map(key => keyedParams[key])
+}
+
+const isCostModelParamsArray = (
+  params: BlockfrostCostModelParams
+): params is readonly number[] => Array.isArray(params)
 
 const executeWithRateLimitRetry = (
   request: () => Effect.Effect<

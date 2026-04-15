@@ -9,6 +9,57 @@ export class ResolveScriptError extends Data.TaggedError("Blockfrost.ResolveScri
 
 export class ResolveScript extends Context.Tag("Blockfrost.ResolveScript")<ResolveScript, (scriptHash: string) => Effect.Effect<Uplc.Script.Script<2 | 3>, ResolveScriptError>>() {}
 
+const BlockfrostNumber = Schema.Union(
+  Schema.Number,
+  Schema.NumberFromString
+)
+
+export const BlockfrostCostModelParams = Schema.Union(
+  Schema.Array(Schema.Number),
+  Schema.Record({
+    key: Schema.String,
+    value: Schema.Number
+  })
+)
+
+export type BlockfrostCostModelParams = Schema.Schema.Type<
+  typeof BlockfrostCostModelParams
+>
+
+export const BlockfrostTipResponse = Schema.Struct({
+  time: Schema.Int,
+  slot: Schema.Int
+})
+
+export type BlockfrostTipResponse = Schema.Schema.Type<
+  typeof BlockfrostTipResponse
+>
+
+export const BlockfrostParamsResponse = Schema.Struct({
+  coins_per_utxo_size: Schema.optional(BlockfrostNumber),
+  coins_per_utxo_word: Schema.optional(BlockfrostNumber),
+  collateral_percent: Schema.Number,
+  cost_models: Schema.Struct({
+    PlutusV1: BlockfrostCostModelParams,
+    PlutusV2: BlockfrostCostModelParams,
+    PlutusV3: Schema.optional(BlockfrostCostModelParams)
+  }),
+  key_deposit: BlockfrostNumber,
+  max_collateral_inputs: Schema.Int,
+  max_tx_ex_mem: BlockfrostNumber,
+  max_tx_ex_steps: BlockfrostNumber,
+  max_tx_size: Schema.Int,
+  min_fee_a: Schema.Int,
+  min_fee_b: Schema.Int,
+  min_fee_ref_script_cost_per_byte: Schema.optional(BlockfrostNumber),
+  price_mem: Schema.Number,
+  price_step: Schema.Number
+})
+
+export type BlockfrostParamsResponse = Schema.Schema.Type<
+  typeof BlockfrostParamsResponse
+>
+
 export const AddressTxsResponse = Schema.Array(Schema.transform(
   Schema.Struct({
     tx_hash: Ledger.TxHash.TxHash,
