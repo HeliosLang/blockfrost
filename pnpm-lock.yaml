@@ -10,13 +10,13 @@ importers:
     dependencies:
       '@effect/platform':
         specifier: 0.94.5
-        version: 0.94.5(effect@3.21.0)
+        version: 0.94.5(effect@3.21.2)
       '@helios-lang/effect':
-        specifier: ^0.4.45
-        version: 0.4.45
+        specifier: ^0.5.1
+        version: 0.5.1
       effect:
-        specifier: 3.21.0
-        version: 3.21.0
+        specifier: 3.21.2
+        version: 3.21.2
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.4
@@ -82,8 +82,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@helios-lang/effect@0.4.45':
-    resolution: {integrity: sha512-etYgbur9d9FNyYWfyQ6MYaHwdHBs9jpGsK+VpffP8FQxakiPR3kb05nnx2r3HeNO4CQ+fmMgBqSWDBlN8TTbgg==}
+  '@helios-lang/effect@0.5.1':
+    resolution: {integrity: sha512-ldgqLTp06J4xQ4cI4Nh8mI192JQv5EJanGhMS+J4c116t/iH4dVbrIp3iix5kxoxy9UOLQ+r+1EL0f0QRIOrfw==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -286,8 +286,8 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
-  effect@3.21.0:
-    resolution: {integrity: sha512-PPN80qRokCd1f015IANNhrwOnLO7GrrMQfk4/lnZRE/8j7UPWrNNjPV0uBrZutI/nHzernbW+J0hdqQysHiSnQ==}
+  effect@3.21.2:
+    resolution: {integrity: sha512-rXd2FGDM8KdjSIrc+mqEELo7ScW7xTVxEf1iInmPSpIde9/nyGuFM710cjTo7/EreGXiUX2MOonPpprbz2XHCg==}
 
   escape-string-regexp@4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
@@ -583,9 +583,9 @@ packages:
 
 snapshots:
 
-  '@effect/platform@0.94.5(effect@3.21.0)':
+  '@effect/platform@0.94.5(effect@3.21.2)':
     dependencies:
-      effect: 3.21.0
+      effect: 3.21.2
       find-my-way-ts: 0.1.6
       msgpackr: 1.11.9
       multipasta: 0.2.7
@@ -636,9 +636,9 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@helios-lang/effect@0.4.45':
+  '@helios-lang/effect@0.5.1':
     dependencies:
-      effect: 3.21.0
+      effect: 3.21.2
 
   '@humanfs/core@0.19.1': {}
 
@@ -850,7 +850,7 @@ snapshots:
   detect-libc@2.1.2:
     optional: true
 
-  effect@3.21.0:
+  effect@3.21.2:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
