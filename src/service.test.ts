@@ -26,6 +26,37 @@ describe("BlockfrostLive", () => {
     expect(params.refTipTime).toBeGreaterThan(0)
   })
 
+  it("uses Blockfrost cost_models_raw ordering for cost model params", async () => {
+    const params = await Effect.runPromise(Network.Params.params.pipe(
+      Effect.provide(
+        BlockfrostLayer({
+          networkName,
+          projectId
+        })
+      )
+    ))
+
+    const response = await fetch(
+      `https://cardano-${networkName}.blockfrost.io/api/v0/epochs/latest/parameters`,
+      {
+        headers: {
+          project_id: projectId
+        }
+      }
+    )
+    const body = await response.json() as {
+      cost_models_raw: {
+        PlutusV1: number[]
+        PlutusV2: number[]
+        PlutusV3?: number[]
+      }
+    }
+
+    expect(params.costModelParamsV1).toEqual(body.cost_models_raw.PlutusV1)
+    expect(params.costModelParamsV2).toEqual(body.cost_models_raw.PlutusV2)
+    expect(params.costModelParamsV3).toEqual(body.cost_models_raw.PlutusV3 ?? [])
+  })
+
   it("getTx() returns same cbor as ledger serialization", async () => {
     const txId
       = "51819b162fc12523e3e80240f86c52e3a0a3fcca686790f6d616e275617a18c4" as Ledger.TxHash.TxHash

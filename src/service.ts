@@ -549,12 +549,15 @@ const toNetworkParams = (
   secondsPerSlot: 1,
   collateralPercentage: params.collateral_percent,
   costModelParamsV1: costModelParamsToArray(
+    params.cost_models_raw?.PlutusV1,
     params.cost_models.PlutusV1
   ),
   costModelParamsV2: costModelParamsToArray(
+    params.cost_models_raw?.PlutusV2,
     params.cost_models.PlutusV2
   ),
   costModelParamsV3: costModelParamsToArray(
+    params.cost_models_raw?.PlutusV3,
     params.cost_models.PlutusV3
   ),
   exCpuFeePerUnit: params.price_step,
@@ -574,8 +577,13 @@ const toNetworkParams = (
 })
 
 const costModelParamsToArray = (
+  rawParams: readonly number[] | undefined,
   params: BlockfrostCostModelParams | undefined
 ): number[] => {
+  if (rawParams !== undefined) {
+    return [...rawParams]
+  }
+
   if (params === undefined) {
     return []
   }

@@ -44,6 +44,11 @@ export const BlockfrostParamsResponse = Schema.Struct({
     PlutusV2: BlockfrostCostModelParams,
     PlutusV3: Schema.optional(BlockfrostCostModelParams)
   }),
+  cost_models_raw: Schema.optional(Schema.Struct({
+    PlutusV1: Schema.Array(Schema.Number),
+    PlutusV2: Schema.Array(Schema.Number),
+    PlutusV3: Schema.optional(Schema.Array(Schema.Number))
+  })),
   key_deposit: BlockfrostNumber,
   max_collateral_inputs: Schema.Int,
   max_tx_ex_mem: BlockfrostNumber,
