@@ -1,13 +1,215 @@
 import { describe, expect, it } from "bun:test"
+import { createServer } from "node:net"
 import { Bytes } from "@helios-lang/effect/Codecs"
 import { Effect } from "effect"
-import { Ledger, Network } from "@helios-lang/effect/Cardano"
+import { Ledger, Network, TxBuilder, Uplc } from "@helios-lang/effect/Cardano"
 import { BlockfrostLayer } from "./service.js"
 
 const networkName = "preprod" as const
 const projectId = "preprodYjh2RkMv6xqgWNKOBhuQ6hoazm0s0iFp"
 
+const getFreePort = (): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const server = createServer()
+
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address()
+
+      server.close((error) => {
+        if (error) {
+          reject(error)
+        } else if (address !== null && typeof address === "object") {
+          resolve(address.port)
+        } else {
+          reject(new Error("Unable to allocate test server port"))
+        }
+      })
+    })
+  })
+
+const withBlockfrostServer = async <A>(
+  handler: (request: Request) => Response,
+  run: (baseUrl: string) => Promise<A>
+): Promise<A> => {
+  const port = await getFreePort()
+  const server = Bun.serve({
+    hostname: "127.0.0.1",
+    port,
+    fetch: (request) => {
+      const url = new URL(request.url)
+
+      if (url.pathname === "/blocks/latest") {
+        return Response.json({
+          time: 1,
+          slot: 1
+        })
+      }
+
+      if (url.pathname === "/epochs/latest/parameters") {
+        return Response.json({
+          coins_per_utxo_size: 4310,
+          collateral_percent: 150,
+          cost_models: {
+            PlutusV1: [],
+            PlutusV2: []
+          },
+          cost_models_raw: {
+            PlutusV1: [],
+            PlutusV2: []
+          },
+          key_deposit: 2000000,
+          max_collateral_inputs: 3,
+          max_tx_ex_mem: 14000000,
+          max_tx_ex_steps: 10000000000,
+          max_tx_size: 16384,
+          min_fee_a: 44,
+          min_fee_b: 155381,
+          price_mem: 0.0577,
+          price_step: 0.0000721
+        })
+      }
+
+      return handler(request)
+    }
+  })
+
+  try {
+    return await run(server.url.toString())
+  } finally {
+    await server.stop()
+  }
+}
+
 describe("BlockfrostLive", () => {
+  it("provides TxBuilder.GetDatum", async () => {
+    const datum = Uplc.Data.makeIntData(42)
+    const datumHash = Ledger.DatumHash.hash(datum)
+    const datumCbor = Bytes.toHex(Uplc.Data.encode(datum))
+    const requestedPaths: string[] = []
+
+    await withBlockfrostServer(
+      (request) => {
+        const url = new URL(request.url)
+
+        requestedPaths.push(url.pathname)
+
+        return Response.json({ cbor: datumCbor })
+      },
+      async (baseUrl) => {
+        const fetchedDatum = await Effect.runPromise(TxBuilder.GetDatum.pipe(
+          Effect.flatMap(getDatum => getDatum(datumHash)),
+          Effect.provide(
+            BlockfrostLayer({
+              networkName,
+              projectId,
+              baseUrl
+            })
+          )
+        ))
+
+        expect(Uplc.Data.equals(fetchedDatum, datum)).toBe(true)
+      }
+    )
+
+    expect(requestedPaths).toEqual([
+      `/scripts/datum/${datumHash}/cbor`
+    ])
+  })
+
+  it("maps missing datum responses to TxBuilder.DatumNotFound", async () => {
+    const datumHash = Ledger.DatumHash.hash(Uplc.Data.makeIntData(404))
+
+    await withBlockfrostServer(
+      () => new Response("not found", { status: 404 }),
+      async (baseUrl) => {
+        const result = await Effect.runPromise(TxBuilder.GetDatum.pipe(
+          Effect.flatMap(getDatum => getDatum(datumHash)),
+          Effect.either,
+          Effect.provide(
+            BlockfrostLayer({
+              networkName,
+              projectId,
+              baseUrl
+            })
+          )
+        ))
+
+        expect(result._tag).toBe("Left")
+
+        if (result._tag === "Left") {
+          expect(result.left).toBeInstanceOf(TxBuilder.DatumNotFound)
+        }
+      }
+    )
+  })
+
+  it("maps invalid datum CBOR to TxBuilder.DatumNotFound", async () => {
+    const datumHash = Ledger.DatumHash.hash(Uplc.Data.makeIntData(400))
+
+    await withBlockfrostServer(
+      () => Response.json({ cbor: "not-cbor" }),
+      async (baseUrl) => {
+        const result = await Effect.runPromise(TxBuilder.GetDatum.pipe(
+          Effect.flatMap(getDatum => getDatum(datumHash)),
+          Effect.either,
+          Effect.provide(
+            BlockfrostLayer({
+              networkName,
+              projectId,
+              baseUrl
+            })
+          )
+        ))
+
+        expect(result._tag).toBe("Left")
+
+        if (result._tag === "Left") {
+          expect(result.left).toBeInstanceOf(TxBuilder.DatumNotFound)
+        }
+      }
+    )
+  })
+
+  it("returns TxBuilder.DatumNotFound for a missing preprod datum hash", async () => {
+    const datumHash
+      = "0000000000000000000000000000000000000000000000000000000000000000" as Ledger.DatumHash.DatumHash
+
+    const result = await Effect.runPromise(TxBuilder.GetDatum.pipe(
+      Effect.flatMap(getDatum => getDatum(datumHash)),
+      Effect.either,
+      Effect.provide(
+        BlockfrostLayer({
+          networkName,
+          projectId
+        })
+      )
+    ))
+
+    expect(result._tag).toBe("Left")
+
+    if (result._tag === "Left") {
+      expect(result.left).toBeInstanceOf(TxBuilder.DatumNotFound)
+    }
+  })
+
+  it("fetches a preprod datum by datum hash", async () => {
+    const datumHash
+      = "be10b490c35501e475186eb2a04bea1cb0aa87bb3ddfd44a7b0a7009bca57633" as Ledger.DatumHash.DatumHash
+    const datum = Uplc.Data.makeIntData(12345678)
+
+    const fetchedDatum = await Effect.runPromise(TxBuilder.GetDatum.pipe(
+      Effect.flatMap(getDatum => getDatum(datumHash)),
+      Effect.provide(
+        BlockfrostLayer({
+          networkName,
+          projectId
+        })
+      )
+    ))
+
+    expect(Uplc.Data.equals(fetchedDatum, datum)).toBe(true)
+  })
+
   it("provides Network.Params.params", async () => {
     const params = await Effect.runPromise(Network.Params.params.pipe(
       Effect.provide(

@@ -5,7 +5,7 @@ import {
   HttpClientError,
   HttpClientResponse
 } from "@effect/platform"
-import { Ledger, Network, Uplc } from "@helios-lang/effect/Cardano"
+import { Ledger, Network, TxBuilder, Uplc } from "@helios-lang/effect/Cardano"
 import { Bytes } from "@helios-lang/effect/Codecs"
 import { Effect, Either, Layer, Schema } from "effect"
 import type { BlockfrostCostModelParams } from "./schemas.js"
@@ -145,6 +145,62 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
       )
     )
 
+  const getDatum = (
+    datumHash: Ledger.DatumHash.DatumHash
+  ): Effect.Effect<Uplc.Data.Data, TxBuilder.DatumNotFound | Network.ConnectionError, never> =>
+    executeWithRateLimitRetry(() =>
+      client.get(`${baseUrl}/scripts/datum/${datumHash}/cbor`, {
+        headers: {
+          project_id: config.projectId
+        },
+        accept: "application/json"
+      })
+    ).pipe(
+      Effect.flatMap(response =>
+        Effect.gen(function* () {
+          if (response.status >= 400) {
+            return yield* Effect.fail(
+              new TxBuilder.DatumNotFound(
+                datumHash,
+                yield* response.text
+              )
+            )
+          }
+
+          const body = yield* response.json
+
+          const { cbor } = yield* Schema.decodeUnknown(
+            CborResponse
+          )(body).pipe(
+            Effect.mapError(
+              e => new TxBuilder.DatumNotFound(datumHash, e.message)
+            )
+          )
+
+          return yield* Effect.try({
+            try: () => Uplc.Data.decode(cbor),
+            catch: e =>
+              new TxBuilder.DatumNotFound(
+                datumHash,
+                e instanceof Error ? e.message : String(e)
+              )
+          }).pipe(
+            Effect.flatMap(result =>
+              result.pipe(
+                Either.mapLeft(
+                  e => new TxBuilder.DatumNotFound(datumHash, e.message)
+                )
+              )
+            )
+          )
+        })
+      ),
+      Effect.catchTag(
+        "ResponseError",
+        e => new TxBuilder.DatumNotFound(datumHash, e.message)
+      )
+    )
+
   const getUTxO = (
     ref: Ledger.UTxORef.UTxORef
   ): Effect.Effect<
@@ -238,6 +294,10 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
     Layer.effect(
       Network.UTxO,
       Effect.succeed(getUTxO)
+    ),
+    Layer.effect(
+      TxBuilder.GetDatum,
+      Effect.succeed(getDatum)
     ),
     Layer.effect(
       Network.UTxOsAt,
