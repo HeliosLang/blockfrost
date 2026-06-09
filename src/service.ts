@@ -383,7 +383,7 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
       Network.Txs,
       Effect.succeed(
         (
-          args: { address: Ledger.Address.Address }
+          args: Network.TxsArgs
         ): Effect.Effect<
           {
             hash: Ledger.TxHash.TxHash
@@ -401,14 +401,29 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
               blockHeight?: number
               blockTime?: number
             }[] = []
-            let page = 1
+            const pageCount = Math.max(
+              1,
+              Math.min(args.count ?? MAX_UTXOS_PER_PAGE, MAX_UTXOS_PER_PAGE)
+            )
+            const firstPage = args.page ?? 1
+            let page = firstPage
 
             while (true) {
-              const query = new URLSearchParams({
-                count: MAX_UTXOS_PER_PAGE.toString(),
-                order: "asc",
+              const queryParams: Record<string, string> = {
+                count: pageCount.toString(),
+                order: args.order ?? "asc",
                 page: page.toString()
-              }).toString()
+              }
+
+              if (args.fromBlock !== undefined) {
+                queryParams.from = args.fromBlock.toString()
+              }
+
+              if (args.toBlock !== undefined) {
+                queryParams.to = args.toBlock.toString()
+              }
+
+              const query = new URLSearchParams(queryParams).toString()
 
               const response = yield* executeWithRateLimitRetry(
                 () =>
@@ -447,7 +462,7 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
 
               txs = txs.concat(decoded)
 
-              if (decoded.length < MAX_UTXOS_PER_PAGE) {
+              if (args.page !== undefined || decoded.length < pageCount) {
                 return txs
               }
 

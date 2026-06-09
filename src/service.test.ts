@@ -143,6 +143,122 @@ describe("BlockfrostLive", () => {
     )
   })
 
+  it("fetches all address transaction pages by default", async () => {
+    const address
+      = "addr_test1vz34ylm8ucm0xgq0a72n0r3w7yhgdudxxekvsae5j3w5d5sje670h" as Ledger.Address.Address
+    const requestedSearches: string[] = []
+    const txHashA = "a".repeat(64) as Ledger.TxHash.TxHash
+    const txHashB = "b".repeat(64) as Ledger.TxHash.TxHash
+    const txHashC = "c".repeat(64) as Ledger.TxHash.TxHash
+
+    const txs = await withBlockfrostServer(
+      (request) => {
+        const url = new URL(request.url)
+
+        requestedSearches.push(url.search)
+
+        if (url.searchParams.get("page") === "1") {
+          return Response.json([
+            {
+              tx_hash: txHashA,
+              tx_index: 0,
+              block_height: 10,
+              block_time: 100
+            },
+            {
+              tx_hash: txHashB,
+              tx_index: 1,
+              block_height: 11,
+              block_time: 101
+            }
+          ])
+        }
+
+        return Response.json([
+          {
+            tx_hash: txHashC,
+            tx_index: 0,
+            block_height: 12,
+            block_time: 102
+          }
+        ])
+      },
+      baseUrl =>
+        Effect.runPromise(Network.Txs.pipe(
+          Effect.flatMap(getTxs => getTxs({ address, count: 2 })),
+          Effect.provide(
+            BlockfrostLayer({
+              networkName,
+              projectId,
+              baseUrl
+            })
+          )
+        ))
+    )
+
+    expect(txs.map(tx => tx.hash)).toEqual([txHashA, txHashB, txHashC])
+    expect(requestedSearches).toEqual([
+      "?count=2&order=asc&page=1",
+      "?count=2&order=asc&page=2"
+    ])
+  })
+
+  it("fetches one descending address transaction page with block range options", async () => {
+    const address
+      = "addr_test1vz34ylm8ucm0xgq0a72n0r3w7yhgdudxxekvsae5j3w5d5sje670h" as Ledger.Address.Address
+    const requestedSearches: string[] = []
+    const txHashA = "a".repeat(64) as Ledger.TxHash.TxHash
+    const txHashB = "b".repeat(64) as Ledger.TxHash.TxHash
+
+    const txs = await withBlockfrostServer(
+      (request) => {
+        const url = new URL(request.url)
+
+        requestedSearches.push(url.search)
+
+        return Response.json([
+          {
+            tx_hash: txHashA,
+            tx_index: 1,
+            block_height: 99,
+            block_time: 990
+          },
+          {
+            tx_hash: txHashB,
+            tx_index: 0,
+            block_height: 98,
+            block_time: 980
+          }
+        ])
+      },
+      baseUrl =>
+        Effect.runPromise(Network.Txs.pipe(
+          Effect.flatMap(getTxs =>
+            getTxs({
+              address,
+              count: 2,
+              fromBlock: 20,
+              order: "desc",
+              page: 3,
+              toBlock: 100
+            })
+          ),
+          Effect.provide(
+            BlockfrostLayer({
+              networkName,
+              projectId,
+              baseUrl
+            })
+          )
+        ))
+    )
+
+    expect(txs.map(tx => tx.hash)).toEqual([txHashA, txHashB])
+    expect(requestedSearches).toEqual([
+      "?count=2&order=desc&page=3&from=20&to=100"
+    ])
+  })
+
   it("maps invalid datum CBOR to TxBuilder.DatumNotFound", async () => {
     const datumHash = Ledger.DatumHash.hash(Uplc.Data.makeIntData(400))
 
