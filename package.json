@@ -27,7 +27,7 @@
   "dependencies": {
     "@effect/platform": "0.94.5",
     "@helios-lang/effect": "0.6.11",
-    "effect": "3.21.2"
+    "effect": "^3.21.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
