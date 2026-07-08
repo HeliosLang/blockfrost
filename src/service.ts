@@ -11,6 +11,7 @@ import { Effect, Either, Layer, Schema } from "effect"
 import type { BlockfrostCostModelParams } from "./schemas.js"
 import {
   AddressTxsResponse,
+  BlockfrostLiveBlockHeightResponse,
   BlockfrostParamsResponse,
   BlockfrostTipResponse,
   CborResponse,
@@ -91,6 +92,16 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
       )
     )
   })
+
+  const getLiveBlockHeight = (): Effect.Effect<number, Network.ConnectionError, never> =>
+    getJson("/blocks/latest").pipe(
+      Effect.flatMap(Schema.decodeUnknown(BlockfrostLiveBlockHeightResponse)),
+      Effect.map(response => response.height),
+      Effect.catchTag(
+        "ParseError",
+        e => new Network.ConnectionError(e.message)
+      )
+    )
 
   const resolveScript = (scriptHash: string) =>
     executeWithRateLimitRetry(() =>
@@ -287,6 +298,10 @@ export const BlockfrostService = (config: Config) => Layer.unwrapEffect(Effect.g
 
   return Layer.mergeAll(
     Layer.succeed(Network.IsMainnet, config.networkName === "mainnet"),
+    Layer.effect(
+      Network.FetchLiveBlockHeight,
+      Effect.succeed(getLiveBlockHeight)
+    ),
     Layer.effect(
       Network.Params.params,
       getParams

@@ -40,6 +40,7 @@ const withBlockfrostServer = async <A>(
 
       if (url.pathname === "/blocks/latest") {
         return Response.json({
+          height: 123,
           time: 1,
           slot: 1
         })
@@ -81,6 +82,25 @@ const withBlockfrostServer = async <A>(
 }
 
 describe("BlockfrostLive", () => {
+  it("provides Network.FetchLiveBlockHeight", async () => {
+    const height = await withBlockfrostServer(
+      () => new Response("unexpected request", { status: 500 }),
+      baseUrl =>
+        Effect.runPromise(Network.FetchLiveBlockHeight.pipe(
+          Effect.flatMap(fetchLiveBlockHeight => fetchLiveBlockHeight()),
+          Effect.provide(
+            BlockfrostLayer({
+              networkName,
+              projectId,
+              baseUrl
+            })
+          )
+        ))
+    )
+
+    expect(height).toBe(123)
+  })
+
   it("provides TxBuilder.GetDatum", async () => {
     const datum = Uplc.Data.makeIntData(42)
     const datumHash = Ledger.DatumHash.hash(datum)

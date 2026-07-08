@@ -35,6 +35,10 @@ export type BlockfrostTipResponse = Schema.Schema.Type<
   typeof BlockfrostTipResponse
 >
 
+export const BlockfrostLiveBlockHeightResponse = Schema.Struct({
+  height: Schema.Int
+})
+
 export const BlockfrostParamsResponse = Schema.Struct({
   coins_per_utxo_size: Schema.optional(BlockfrostNumber),
   coins_per_utxo_word: Schema.optional(BlockfrostNumber),

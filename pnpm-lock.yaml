@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@effect/platform':
-        specifier: 0.94.5
-        version: 0.94.5(effect@3.21.2)
+        specifier: 0.96.1
+        version: 0.96.1(effect@3.21.2)
       '@helios-lang/effect':
-        specifier: 0.7.0
-        version: 0.7.0
+        specifier: 0.7.7
+        version: 0.7.7
       effect:
         specifier: ^3.21.2
         version: 3.21.2
@@ -39,10 +39,10 @@ importers:
 
 packages:
 
-  '@effect/platform@0.94.5':
-    resolution: {integrity: sha512-z05APUiDDPbodhTkH/RJqOLoCU11bU2IZLfcwLFrld03+ob1VeqRnELQlmueLIYm6NZifHAtjl32V+GRt34y4A==}
+  '@effect/platform@0.96.1':
+    resolution: {integrity: sha512-cjB1QZZYEP8JXCFNGvBLVi0T6YUBQTmOVEUA3SDbiQ6RUO+p6CE3eyD2vMWmrz5nE8yY5QSAuOV9v0boEcUv+A==}
     peerDependencies:
-      effect: ^3.19.17
+      effect: ^3.21.2
 
   '@eslint-community/eslint-utils@4.9.1':
     resolution: {integrity: sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ==}
@@ -82,8 +82,8 @@ packages:
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@helios-lang/effect@0.7.0':
-    resolution: {integrity: sha512-a3F/cdQfazAJbWZh94k4CP3OjhuvkIzWpF2irRoOaVIPYIzJC1GXXA7AqNeYRR5P4SB9zKRtyAR6VS/4TWDXQQ==}
+  '@helios-lang/effect@0.7.7':
+    resolution: {integrity: sha512-ASoc/MmqL9FxUqzLtZGNsf9+NrfHAZWp4i4iwmcMyfguw4Wt7+Z4FuWthoB2IJVmbh0VHBS5nUQ//W85jxT5iw==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -459,8 +459,8 @@ packages:
     resolution: {integrity: sha512-P0efT1C9jIdVRefqjzOQ9Xml57zpOXnIuS+csaB4MdZbTdmGDLo8XhzBG1N7aO11gKDDkJvBLULeFTo46wwreA==}
     hasBin: true
 
-  msgpackr@1.11.9:
-    resolution: {integrity: sha512-FkoAAyyA6HM8wL882EcEyFZ9s7hVADSwG9xrVx3dxxNQAtgADTrJoEWivID82Iv1zWDsv/OtbrrcZAzGzOMdNw==}
+  msgpackr@1.12.1:
+    resolution: {integrity: sha512-4EUH9tQHnMmEgzW/MdAP0KIfa1T9AF+htl0ffe2n5vb2EKn9y2co8ccpgWko6S52Jy1PQZKwRnx5/KkYjtd9MQ==}
 
   multipasta@0.2.7:
     resolution: {integrity: sha512-KPA58d68KgGil15oDqXjkUBEBYc00XvbPj5/X+dyzeo/lWm9Nc25pQRlf1D+gv4OpK7NM0J1odrbu9JNNGvynA==}
@@ -583,11 +583,11 @@ packages:
 
 snapshots:
 
-  '@effect/platform@0.94.5(effect@3.21.2)':
+  '@effect/platform@0.96.1(effect@3.21.2)':
     dependencies:
       effect: 3.21.2
       find-my-way-ts: 0.1.6
-      msgpackr: 1.11.9
+      msgpackr: 1.12.1
       multipasta: 0.2.7
 
   '@eslint-community/eslint-utils@4.9.1(eslint@9.39.4)':
@@ -636,7 +636,7 @@ snapshots:
       '@eslint/core': 0.17.0
       levn: 0.4.1
 
-  '@helios-lang/effect@0.7.0':
+  '@helios-lang/effect@0.7.7':
     dependencies:
       effect: 3.21.2
 
@@ -1031,7 +1031,7 @@ snapshots:
       '@msgpackr-extract/msgpackr-extract-win32-x64': 3.0.3
     optional: true
 
-  msgpackr@1.11.9:
+  msgpackr@1.12.1:
     optionalDependencies:
       msgpackr-extract: 3.0.3
 
